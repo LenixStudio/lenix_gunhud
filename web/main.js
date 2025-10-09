@@ -1,30 +1,73 @@
 document.addEventListener("DOMContentLoaded", () => {
   let root = document.getElementById("root");
-  function updateTheValues(weapon, playerKills) {
+  
+  function initializeHUD() {
     root.innerHTML = `
       <div id="container">
-      <div class="weapon-icon">
-        <img src="nui://qb-inventory/html/images/${weapon.image}" alt="could not load ${weapon.name}'s image, the fetched image: ${weapon.image}">
-      </div>
-  
-      <div class="ammo-count">
-        <span class="ammo-current">${weapon.ammo}</span>
-        <span class="ammo-separator">≀</span>
-        <span class="ammo-reserve">${weapon.reserve}</span>
-      </div>
-  
-      <div class="weapon-info">
-        <div class="weapon-name">${weapon.name}</div>
-        <div class="kill-stats">
-          <div class="kills-count">${playerKills}x</div>
-          <div class="kill-icon">
-            <i class="fa-solid fa-skull"></i>
+        <div class="weapon-icon">
+          <img id="weapon-image" src="" alt="weapon">
+        </div>
+    
+        <div class="ammo-count">
+          <span class="ammo-current">0</span>
+          <span class="ammo-separator">/</span>
+          <span class="ammo-reserve">0</span>
+        </div>
+    
+        <div class="weapon-info">
+          <div class="weapon-name">Unknown</div>
+          <div class="kill-stats">
+            <div class="kills-count">0x</div>
+            <div class="kill-icon">
+              <i class="fa-solid fa-skull"></i>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     `;
   }
+  
+  // Store references to elements (faster access)
+  let weaponImage, ammoCurrent, ammoReserve, weaponName, killsCount;
+  
+  function cacheElements() {
+    weaponImage = document.getElementById('weapon-image');
+    ammoCurrent = document.querySelector('.ammo-current');
+    ammoReserve = document.querySelector('.ammo-reserve');
+    weaponName = document.querySelector('.weapon-name');
+    killsCount = document.querySelector('.kills-count');
+  }
+  
+  // Update only the values (much faster)
+  function updateTheValues(weapon, playerKills) {
+    // Update image
+    weaponImage.src = `nui://qb-inventory/html/images/${weapon.image}`;
+    weaponImage.alt = weapon.name;
+    
+    // Update ammo
+    ammoCurrent.textContent = weapon.ammo;
+    ammoReserve.textContent = weapon.reserve;
+    
+    // Update weapon name
+    weaponName.textContent = weapon.name;
+    
+    // Update kills
+    killsCount.textContent = `${playerKills}x`;
+    
+    // Update ammo color based on amount
+    if (weapon.clipSize && weapon.ammo <= weapon.clipSize / 4) {
+      ammoCurrent.style.color = '#ff4444';
+      ammoCurrent.style.textShadow = '0 0 10px rgba(255, 0, 0, 0.6)';
+    } else if (weapon.clipSize && weapon.ammo <= weapon.clipSize / 2) {
+      ammoCurrent.style.color = '#ffaa44';
+      ammoCurrent.style.textShadow = '0 0 10px rgba(255, 170, 68, 0.6)';
+    } else {
+      ammoCurrent.style.color = '#ffffff';
+      ammoCurrent.style.textShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
+    }
+  }
+  
+  // Add styles
   let style = document.createElement("style");
   style.textContent = `
     * {
@@ -83,6 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
       width: 120px;
       height: auto;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+      transition: all 0.3s ease;
     }
 
     .ammo-count {
@@ -102,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
       font-weight: 700;
       color: #ffffff;
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      transition: all 0.3s ease;
     }
 
     .ammo-separator {
@@ -113,6 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .ammo-reserve {
       font-size: 1.5rem;
       color: rgba(255, 255, 255, 0.6);
+      transition: all 0.3s ease;
     }
 
     .weapon-info {
@@ -132,6 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
       letter-spacing: 1px;
       display: flex;
       align-items: center;
+      transition: all 0.3s ease;
     }
 
     .kill-stats {
@@ -150,6 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
       align-items: center;
       justify-content: center;
       min-width: 50px;
+      transition: all 0.3s ease;
     }
 
     .kill-icon {
@@ -167,25 +215,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   `;
   document.head.appendChild(style);
+  
+  initializeHUD();
+  cacheElements();
+  
   fetch(`https://${GetParentResourceName()}/NuiReady`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({}),
-  })
+  });
+  
   window.addEventListener('message', (event) => {
     let data = event.data;
-    if (data.action == 'show') {
+    
+    if (data.action === 'show') {
       document.body.style.display = 'block';
-    } else if (data.action == 'hide') {
+    } else if (data.action === 'hide') {
       document.body.style.display = 'none';
-    } else if (data.action == 'update') {
-      updateTheValues(data.weapon, data.playerKills)
-      if (data.weapon.ammo <= data.weapon.clipSize / 4) {
-        document.getElementsByClassName('ammo-current')[0].style.color = '#ff000020'
-        document.getElementsByClassName('ammo-current')[0].style.boxShadow = '0 0 10pxrgba(255, 0, 0, 0.41)'
-      }
+    } else if (data.action === 'update') {
+      updateTheValues(data.weapon, data.playerKills);
     }
-  })
-})
+  });
+});
