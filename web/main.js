@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   
   function updateTheValues(weapon, playerKills) {
-    weaponImage.src = `nui://qb-inventory/html/images/${weapon.image}`;
+    weaponImage.src = `${weapon.image}`;
     weaponImage.alt = weapon.name;
     
     ammoCurrent.textContent = weapon.ammo;
@@ -102,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
       justify-content: center;
       position: relative;
       overflow: hidden;
+      min-width: 150px;
     }
 
     .weapon-icon::before {
@@ -115,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     .weapon-icon img {
-      width: 120px;
+      width: 70px;
       height: auto;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
       transition: all 0.3s ease;
