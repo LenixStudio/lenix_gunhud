@@ -6,11 +6,11 @@ author 'Trippler Scripts'
 
 client_scripts {
   'client/bridge.js',
-  'client/main.js',
+  'client/build/main.js',
 }
 
 ui_page 'web/index.html'
 files {
-  'web/main.js',
+  'web/build/main.js',
   'web/index.html',
 }
